@@ -14,23 +14,16 @@ An simplist page is also implemented to see and download all the files
 
 <details>
     <summary>Via NodeJs</summary>
-    Clone this repository, install all the dependencies with
+    Clone this repository, install all the dependencies and launch the program with
 
-    ```bash
     npm install
-    ```
-
-    and run the program with
-
-    ```bash
     npm start
-    ```
 
 </details>
 <details>
     <summary>Via Docker Compose</summary>
     Here is the docker-compose file
-    ```yml
+
     version: '3'
     services:
       numworksversionchecker:
@@ -39,7 +32,7 @@ An simplist page is also implemented to see and download all the files
         - "8080:3000"
         volumes:
         - /home/bastien/docker/numvercheck:/app/static
-    ```
+
 </details>
 
 ## Issues and problems

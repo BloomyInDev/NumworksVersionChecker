@@ -10,6 +10,38 @@ This will also download it and notify you if you have setup the Discord Webhook
 
 An simplist page is also implemented to see and download all the files
 
+# How to setup
+
+<details>
+    <summary>Via NodeJs</summary>
+    Clone this repository, install all the dependencies with
+
+    ```bash
+    npm install
+    ```
+
+    and run the program with
+
+    ```bash
+    npm start
+    ```
+
+</details>
+<details>
+    <summary>Via Docker Compose</summary>
+    Here is the docker-compose file
+    ```yml
+    version: '3'
+    services:
+      numworksversionchecker:
+        image: bloomyindev/numworksversionchecker:v1-release
+        ports:
+        - "8080:3000"
+        volumes:
+        - /home/bastien/docker/numvercheck:/app/static
+    ```
+</details>
+
 ## Issues and problems
 
 If you have any issue with my script, open an issue please (cuz i'm gonna try to fix it)

@@ -31,7 +31,7 @@ An simplist page is also implemented to see and download all the files
         ports:
         - "8080:3000"
         volumes:
-        - /home/bastien/docker/numvercheck:/app/static
+        - /path/to/config/numvercheck:/app/static
 
 </details>
 

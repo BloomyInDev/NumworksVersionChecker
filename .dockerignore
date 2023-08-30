@@ -1,0 +1,4 @@
+node_modules
+static/firmwares
+static/versions.json
+static/config.json

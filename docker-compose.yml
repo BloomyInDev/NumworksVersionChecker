@@ -1,0 +1,8 @@
+version: '3'
+services:
+  numworksversionchecker:
+    build: .
+    ports:
+      - "8080:3000"
+    volumes:
+      - /home/bastien/docker/numvercheck:/app/static

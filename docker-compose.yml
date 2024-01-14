@@ -1,7 +1,7 @@
 version: '3'
 services:
   numworksversionchecker:
-    build: .
+    image: bloomyindev/numworksversionchecker:v1-release
     ports:
       - "8080:3000"
     volumes:

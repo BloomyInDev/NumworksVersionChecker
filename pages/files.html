@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Numworks Version Checker</title>
+    </head>
+    <body>
+        <h1 id="title">Numworks Version Checker</h1>
+        <div id="content"><div id="calculators"></div></div>
+        <footer>
+            <div>
+                <p>
+                    This website is self-hosted and made with ❤️ by
+                    <a href="https://github.com/BloomyInDev">Bloomy</a>
+                </p>
+            </div>
+        </footer>
+        <script type="module" defer>
+            const app = async () => {
+                let rawdata = await fetch('/api/get-files-list')
+                let data = await rawdata.json()
+                console.log(data)
+                if (data.error.status == false) {
+                    data = data.data
+                    const content_ui = document.getElementById('calculators')
+                    Object.keys(data).forEach((calc) => {
+                        const ui_div = document.createElement('div')
+                        ui_div.classList.add('calculator')
+                        const ui_text = document.createElement('p')
+                        ui_text.innerText = calc
+                        ui_text.classList.add('calc-name')
+                        const ui_ul = document.createElement('ul')
+                        data[calc].forEach((firm) => {
+                            const ui_li = document.createElement('li')
+                            ui_li.innerHTML = `<a href="http://${window.location.host}${firm.path}">${firm.name} - Download</a>`
+                            ui_ul.appendChild(ui_li)
+                        })
+                        ui_div.appendChild(ui_text)
+                        ui_div.appendChild(ui_ul)
+                        content_ui.appendChild(ui_div)
+                    })
+                } else {
+                }
+            }
+            app()
+        </script>
+        <style>
+            body {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
+                    Consolas, 'Liberation Mono', 'Courier New', monospace;
+                background-color: #353535;
+                display: grid;
+                grid-template-rows: auto 1fr auto;
+                height: 100%;
+                min-height: 100vh;
+                justify-content: center;
+                place-items: center;
+                margin: 0;
+            }
+
+            #title {
+                font-size: 4rem;
+                margin-bottom: 2px;
+                text-align: center;
+                color: #9e9e9e;
+            }
+
+            #content {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: #9e9e9e;
+            }
+
+            #content > p {
+                font-size: 1.25rem;
+                text-align: center;
+            }
+
+            #calculators {
+                width: fit-content;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+                gap: 1.5rem;
+                align-items: center;
+                place-content: center;
+                width: 100%;
+            }
+
+            .calculator {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 8rem;
+                width: 16rem;
+                padding: 0.5rem;
+                border-width: 2px;
+                border-style: solid;
+                border-radius: 1rem;
+                border-color: #9e9e9e;
+                margin: 0.5rem 0;
+            }
+
+            .calculator:hover {
+                background-color: #424242;
+                transition: all 250ms ease-in-out;
+            }
+
+            .calculator .calc-name {
+                font-size: 2em;
+                color: #919191;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+
+            .calculator .calc-version {
+                font-size: 4em;
+                color: #ffb734;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+
+            footer {
+                width: fit-content;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                height: 4rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: #9e9e9e;
+                border-radius: 1rem 1rem 0 0;
+            }
+
+            footer p {
+                text-align: center;
+                margin: 0;
+            }
+
+            footer a {
+                color: #424242;
+                text-decoration: none;
+            }
+
+            a {
+                color: #b6b6b6;
+            }
+
+            @media (max-width: 640px) {
+                #title {
+                    font-size: 2rem;
+                    text-align: center;
+                    color: #9e9e9e;
+                }
+
+                #calculators {
+                    grid-template-columns: 1fr;
+                }
+
+                footer {
+                    height: 5rem;
+                }
+            }
+        </style>
+    </body>
+</html>

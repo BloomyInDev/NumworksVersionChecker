@@ -11,14 +11,8 @@ if (!fs.existsSync('static/config.json')) {
     fs.writeFileSync(
         'static/config.json',
         JSON.stringify({
-            webhook: { enabled: false, url: '' },
-            calculators: [
-                'n0100',
-                'n0110',
-                'n0115',
-                'n0120',
-                'N0120_PORTUGAL_PROTOTYPE_20210930',
-            ],
+            integrations: { discord: { enabled: false, url: '' } },
+            calculators: ['n0100', 'n0110', 'n0115', 'n0120'],
             versions: ['stable'],
             cookie: '',
             baseUrl: 'https://my.numworks.com/firmwares/',
@@ -27,15 +21,33 @@ if (!fs.existsSync('static/config.json')) {
 }
 const config = { ...JSON.parse(readFile('static/config.json')) }
 let webhookClient
-if (config.webhook.enabled) {
-    webhookClient = new WebhookClient({ url: config.webhook.url })
+if (config.integrations.discord.enabled) {
+    webhookClient = new WebhookClient({ url: config.integrations.discord.url })
 }
 const eventEmitter = new EventEmitter()
 if (!fs.existsSync('static/versions.json')) {
-    fs.writeFileSync('static/versions.json', JSON.stringify({}))
+    let prepare_version_file = {}
+    config.versions.forEach((version) => {
+        prepare_version_file[version] = {}
+    })
+    fs.writeFileSync(
+        'static/versions.json',
+        JSON.stringify(prepare_version_file),
+    )
     console.log(`'static/versions.json' file does not exist, creating one`)
 }
+
 let knownLastVersion = { ...JSON.parse(readFile('static/versions.json')) }
+config.versions.forEach((version) => {
+    if (!Object.keys(knownLastVersion).includes(version)) {
+        knownLastVersion[version] = {}
+    }
+})
+fs.writeFileSync(
+    'static/versions.json',
+    JSON.stringify(knownLastVersion),
+    'utf-8',
+)
 console.log(knownLastVersion)
 
 if (!fs.existsSync('static/firmwares')) {
@@ -62,21 +74,22 @@ const getLastVer = async (calculator, branch = 'stable') => {
         ),
         data = await dataraw.json()
     if (
-        Object.keys(knownLastVersion).includes(calculator) == false ||
-        knownLastVersion[calculator].version !== data.version
+        Object.keys(knownLastVersion[branch]).includes(calculator) == false ||
+        knownLastVersion[branch][calculator].version !== data.version
     ) {
         eventEmitter.emit('newversiondetected', {
             calculator: calculator,
             branch: branch,
             version: data.version,
+            commit: data.patch_level,
         })
     }
     const filename = data.version.replace(/\./g, '-')
-    knownLastVersion[calculator] = {
+    knownLastVersion[branch][calculator] = {
         version: data.version,
         size: data.size,
         commit: data.patch_level,
-        filenameVersion: `${filename}.dfu`,
+        filenameVersion: `${filename}-${data.patch_level}.dfu`,
     }
     return Promise.resolve()
 }
@@ -84,10 +97,12 @@ const getAll = async () => {
     console.log('Get all versions...')
     if (config.cookie == '') return
     let promises = []
-    for (let index = 0; index < config.calculators.length; index++) {
-        const calculator = config.calculators[index]
-        promises.push(getLastVer(calculator, 'stable'))
-    }
+    config.versions.forEach((version) => {
+        for (let index = 0; index < config.calculators.length; index++) {
+            const calculator = config.calculators[index]
+            promises.push(getLastVer(calculator, version))
+        }
+    })
     await Promise.all(promises)
     console.table(knownLastVersion)
     fs.writeFileSync(
@@ -102,9 +117,9 @@ eventEmitter.on('newversiondetected', async (data) => {
     downloadFile(
         `${config.baseUrl}/${data.calculator}/${data.branch}.dfu`,
         { headers },
-        `static/firmwares/${data.calculator}/${filename}.dfu`,
+        `static/firmwares/${data.calculator}/${filename}-${data.commit}.dfu`,
     )
-    if (config.webhook.enabled) {
+    if (config.integrations.discord.enabled) {
         const embed = new EmbedBuilder()
             .setTitle('New Update')
             .addFields(
@@ -133,19 +148,41 @@ getAll()
 
 const app = express()
 
-app.use('static', express.static('static'))
+app.use('/static', express.static('static'))
 app.get('/', (req, res) => {
+    res.redirect('/panel')
+})
+app.get('/api/raw-data', (req, res) => {
     let sendData = {}
-    let error = false
-    if (config.cookie == '') error = { status: true, cfg: config }
-    Object.keys(knownLastVersion).forEach((key) => {
-        const calculator = knownLastVersion[key]
-        sendData[key] = {
-            ...calculator,
-            download: `http://${req.headers.host}/static/firmwares/${key}/${calculator.filenameVersion}`,
-        }
-    })
-    res.json({ error: error, calculators: sendData })
+    let error = { status: false }
+    if (config.cookie == '')
+        error = { status: true, why: 'numworks token missing' }
+    else sendData = { ...knownLastVersion }
+    res.json({ data: sendData, error })
+})
+app.get('/api/get-files-list', (req, res) => {
+    let sendData = {}
+    let error = { status: false }
+    if (config.cookie == '')
+        error = { status: true, why: 'numworks token missing' }
+    else {
+        const calcs = fs.readdirSync('./static/firmwares')
+        calcs.forEach((calc) => {
+            sendData[calc] = fs
+                .readdirSync(`./static/firmwares/${calc}`)
+                .map((e) => {
+                    return { name: e, path: `/static/firmwares/${calc}/${e}` }
+                })
+        })
+    }
+
+    res.json({ data: sendData, error })
+})
+app.get('/panel', (req, res) => {
+    res.send(readFile('./pages/index.html'))
+})
+app.get('/files', (req, res) => {
+    res.send(readFile('./pages/files.html'))
 })
 const port = process.env.PORT || 3000
 app.listen(port, () => console.log(`Listening on ${port}`))

@@ -16,6 +16,11 @@ if (!fs.existsSync('static/config.json')) {
             versions: ['stable'],
             cookie: '',
             baseUrl: 'https://my.numworks.com/firmwares/',
+            web: {
+                noRoot: false,
+                noStatic: false,
+                noFiles: false,
+            },
         }),
     )
 }
@@ -148,10 +153,15 @@ getAll()
 
 const app = express()
 
-app.use('/static', express.static('static'))
-app.get('/', (req, res) => {
-    res.redirect('/panel')
-})
+if (!config.web.noStatic) {
+    app.use('/static', express.static('static'))
+}
+if (!config.web.noRoot) {
+    app.get('/', (req, res) => {
+        res.redirect('./panel')
+    })
+}
+
 app.get('/api/raw-data', (req, res) => {
     let sendData = {}
     let error = { status: false }
@@ -181,8 +191,10 @@ app.get('/api/get-files-list', (req, res) => {
 app.get('/panel', (req, res) => {
     res.send(readFile('./pages/index.html'))
 })
-app.get('/files', (req, res) => {
-    res.send(readFile('./pages/files.html'))
-})
+if (!config.web.noFiles) {
+    app.get('/files', (req, res) => {
+        res.send(readFile('./pages/files.html'))
+    })
+}
 const port = process.env.PORT || 3000
 app.listen(port, () => console.log(`Listening on ${port}`))

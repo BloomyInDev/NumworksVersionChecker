@@ -18,7 +18,7 @@
         </footer>
         <script type="module" defer>
             const app = async () => {
-                let rawdata = await fetch('/api/get-files-list')
+                let rawdata = await fetch('../api/get-files-list')
                 let data = await rawdata.json()
                 console.log(data)
                 if (data.error.status == false) {

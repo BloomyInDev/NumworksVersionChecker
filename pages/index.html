@@ -25,7 +25,7 @@
         </footer>
         <script type="module" defer>
             const app = async () => {
-                let rawdata = await fetch('/api/raw-data')
+                let rawdata = await fetch('../api/raw-data')
                 let data = await rawdata.json()
                 if (data.error.status == false) {
                     data = data.data
